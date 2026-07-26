@@ -116,9 +116,13 @@ export default function App() {
   const showNotification = (msg, type = 'info') => { setNotification({ msg, type }); setTimeout(() => setNotification(null), 3000); };
   
   const startAd = () => { 
-    setShowAd(true); 
-    setAdTimer(5); 
-    setAdFinished(false); 
+  // BUKA IKLAN DI TAB BARU
+  window.open("https://www.effectivecpmnetwork.com/cvfeybzes4?key=1135154a38f4208f69b6ba63b3dda816", "_blank");
+
+  // MULAI HITUNG MUNDUR DI WEB ANDA
+  setShowAd(true); 
+  setAdTimer(5); 
+  setAdFinished(false); 
   };
 
   useEffect(() => {
