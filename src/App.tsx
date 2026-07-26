@@ -7,12 +7,13 @@ import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, increment, se
 // --- KONFIGURASI FIREBASE ANDA ---
 // Ganti bagian ini nanti dengan API Key dari console.firebase.google.com
 const firebaseConfig = {
-  apiKey: "API_KEY_ANDA_DI_SINI",
-  authDomain: "PROJECT_ID_ANDA.firebaseapp.com",
-  projectId: "PROJECT_ID_ANDA",
-  storageBucket: "PROJECT_ID_ANDA.appspot.com",
-  messagingSenderId: "SENDER_ID_ANDA",
-  appId: "APP_ID_ANDA"
+  apiKey: "AIzaSyCep9qVX98VmUMgzBdAUvYjhSo0KqLqdFo",
+  authDomain: "faucet-rupiah.firebaseapp.com",
+  projectId: "faucet-rupiah",
+  storageBucket: "faucet-rupiah.firebasestorage.app",
+  messagingSenderId: "467404311048",
+  appId: "1:467404311048:web:a56c8f0163a015f1f0dfbd",
+  measurementId: "G-8DJE68M8HD"
 };
 
 let app, db;
