@@ -330,6 +330,9 @@ export default function App() {
           <span>{notification.msg}</span>
         </div>
       )}
+      <footer className="mt-16 py-6 text-center text-xs text-slate-500 border-t border-slate-900/80">
+        <p>© 2026 RupiahSpin. All rights reserved. by Salmann.d</p>
+      </footer>
     </div>
   );
 }
