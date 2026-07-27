@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Coins, Ticket, User, AlertCircle, Video, X, Trophy, History, CheckCircle2, LogOut, Lock, Wallet, ArrowLeft, Activity, Tag, Gift } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, increment, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCep9qVX98VmUMgzBdAUvYjhSo0KqLqdFo",
-  authDomain: "faucet-rupiah.firebaseapp.com",
-  projectId: "faucet-rupiah",
-  storageBucket: "faucet-rupiah.firebasestorage.app",
-  messagingSenderId: "467404311048",
-  appId: "1:467404311048:web:a56c8f0163a015f1f0dfbd",
+  apiKey: "API_KEY_ANDA_DI_SINI",
+  authDomain: "PROJECT_ID_ANDA.firebaseapp.com",
+  projectId: "PROJECT_ID_ANDA",
+  storageBucket: "PROJECT_ID_ANDA.appspot.com",
+  messagingSenderId: "SENDER_ID_ANDA",
+  appId: "APP_ID_ANDA"
 };
 
 let app, db;
@@ -25,6 +25,7 @@ const PRIZES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40, 50, 60, 70, 
 const WEIGHTS = PRIZES.map(p => Math.max(1, Math.floor(100000 / p)));
 const TOTAL_WEIGHT = WEIGHTS.reduce((acc, val) => acc + val, 0);
 const SLICE_ANGLE = 360 / PRIZES.length;
+const MIN_WITHDRAW = 1000; // Syarat minimum penarikan koin
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -38,9 +39,12 @@ export default function App() {
   const [firebaseError, setFirebaseError] = useState(false);
   const [currentView, setCurrentView] = useState('game'); 
 
-  // State untuk input kode voucher
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherLoading, setVoucherLoading] = useState(false);
+
+  // State untuk Nomor DANA
+  const [danaNumber, setDanaNumber] = useState('');
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
 
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -117,7 +121,7 @@ export default function App() {
   };
 
   const handleLogout = () => { localStorage.removeItem('faucet_session'); setCurrentUser(null); setFormUsername(''); setFormPassword(''); setCurrentView('game'); };
-  const showNotification = (msg, type = 'info') => { setNotification({ msg, type }); setTimeout(() => setNotification(null), 3000); };
+  const showNotification = (msg, type = 'info') => { setNotification({ msg, type }); setTimeout(() => setNotification(null), 4000); };
   
   const startAd = () => { 
     setShowAd(true); 
@@ -138,7 +142,6 @@ export default function App() {
     await updateDoc(doc(db, 'faucet_users', currentUser), { tickets: increment(1) }).catch(console.error);
   };
 
-  // --- FUNGSI KLAIM KODE VOUCHER ---
   const handleClaimVoucher = async (e) => {
     e.preventDefault();
     if (!voucherInput.trim()) return;
@@ -159,22 +162,19 @@ export default function App() {
       const vData = voucherSnap.data();
       const redeemedBy = vData.redeemedBy || [];
 
-      // Cek apakah user ini sudah pernah pakai voucher tersebut
       if (redeemedBy.includes(currentUser)) {
         showNotification("Anda sudah pernah menggunakan kode ini!", "error");
         setVoucherLoading(false);
         return;
       }
 
-      const rewardType = vData.type; // 'balance' atau 'tickets'
+      const rewardType = vData.type; 
       const rewardAmount = vData.amount;
 
-      // Update data voucher: masukkan currentUser ke array redeemedBy
       await updateDoc(voucherRef, {
         redeemedBy: [...redeemedBy, currentUser]
       });
 
-      // Update saldo/tiket user di database
       const userRef = doc(db, 'faucet_users', currentUser);
       if (rewardType === 'tickets') {
         await updateDoc(userRef, { tickets: increment(rewardAmount) });
@@ -189,6 +189,37 @@ export default function App() {
       showNotification("Terjadi kesalahan saat klaim voucher.", "error");
     }
     setVoucherLoading(false);
+  };
+
+  // --- FUNGSI WITHDRAW KE DANA ---
+  const handleWithdraw = async (e) => {
+    e.preventDefault();
+    if (userData.balance < MIN_WITHDRAW || !danaNumber.trim() || !currentUser || !db) return;
+
+    setWithdrawLoading(true);
+    const userRef = doc(db, 'faucet_users', currentUser);
+    const amountToWithdraw = userData.balance;
+
+    try {
+      // Simpan data permintaan withdraw ke koleksi 'withdrawals' di Firebase
+      await addDoc(collection(db, 'withdrawals'), {
+        username: currentUser,
+        amount: amountToWithdraw,
+        danaNumber: danaNumber.trim(),
+        status: 'Pending',
+        createdAt: serverTimestamp()
+      });
+
+      // Reset balance member setelah permintaan masuk
+      await updateDoc(userRef, { balance: 0 });
+      
+      showNotification(`Withdraw Berhasil! Dana akan dikirim ke nomor DANA (${danaNumber}) dalam waktu 1-3 hari kerja.`, "success");
+      setDanaNumber('');
+    } catch (err) {
+      console.error(err);
+      showNotification("Gagal memproses penarikan.", "error");
+    }
+    setWithdrawLoading(false);
   };
 
   const handleSpin = async () => {
@@ -308,6 +339,7 @@ export default function App() {
               </form>
             </div>
 
+            {/* TOTAL SALDO */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
               <p className="text-slate-400 text-xs mb-1 uppercase font-bold tracking-wider">Total Pendapatan Koin</p>
               <div className="flex items-center gap-3 mt-2">
@@ -316,6 +348,41 @@ export default function App() {
                   {userData.balance.toLocaleString('id-ID')}
                 </span>
               </div>
+            </div>
+
+            {/* FORM WITHDRAW KE DANA */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+              <p className="text-slate-400 text-xs mb-2 uppercase font-bold tracking-wider flex items-center gap-2">
+                <Wallet size={16} className="text-green-400" /> Penarikan Saldo (Withdraw ke DANA)
+              </p>
+              <p className="text-slate-400 text-xs mb-4">
+                Minimum penarikan adalah <span className="text-yellow-400 font-bold">{MIN_WITHDRAW.toLocaleString('id-ID')} Koin</span>.
+              </p>
+
+              <form onSubmit={handleWithdraw} className="space-y-3">
+                <div>
+                  <label className="block text-slate-400 text-xs font-bold mb-1">Nomor Akun DANA</label>
+                  <input 
+                    type="number" 
+                    placeholder="Contoh: 081234567890" 
+                    value={danaNumber}
+                    onChange={(e) => setDanaNumber(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-green-500"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={userData.balance < MIN_WITHDRAW || !danaNumber.trim() || withdrawLoading}
+                  className="w-full bg-green-600 hover:bg-green-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors cursor-pointer shadow-lg mt-2"
+                >
+                  {withdrawLoading 
+                    ? "Memproses..." 
+                    : userData.balance < MIN_WITHDRAW 
+                      ? `Belum Cukup (Kurang ${(MIN_WITHDRAW - userData.balance).toLocaleString('id-ID')} Koin)` 
+                      : 'Ajukan Withdraw'}
+                </button>
+              </form>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
