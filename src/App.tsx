@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Coins, Ticket, User, AlertCircle, Video, X, Trophy, History, CheckCircle2, LogOut, Lock, Wallet, ArrowLeft, Activity, Tag, Gift } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, increment, serverTimestamp, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, increment, serverTimestamp, collection, addDoc, query, where } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCep9qVX98VmUMgzBdAUvYjhSo0KqLqdFo",
@@ -42,9 +42,10 @@ export default function App() {
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherLoading, setVoucherLoading] = useState(false);
 
-  // State untuk Nomor DANA
+  // State Nomor DANA & Riwayat Withdraw
   const [danaNumber, setDanaNumber] = useState('');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawHistory, setWithdrawHistory] = useState([]);
 
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -60,6 +61,7 @@ export default function App() {
     if (savedUser) setCurrentUser(savedUser);
   }, []);
 
+  // Listener Data User
   useEffect(() => {
     if (!currentUser || !db) return;
     const docRef = doc(db, 'faucet_users', currentUser);
@@ -72,6 +74,22 @@ export default function App() {
       }
     }, (error) => {
       setFirebaseError(true);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  // Listener Riwayat Withdraw User
+  useEffect(() => {
+    if (!currentUser || !db) return;
+    const q = query(collection(db, 'withdrawals'), where('username', '==', currentUser));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      // Urutkan dari yang terbaru berdasarkan waktu
+      list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      setWithdrawHistory(list);
     });
     return () => unsubscribe();
   }, [currentUser]);
@@ -191,7 +209,6 @@ export default function App() {
     setVoucherLoading(false);
   };
 
-  // --- FUNGSI WITHDRAW KE DANA ---
   const handleWithdraw = async (e) => {
     e.preventDefault();
     if (userData.balance < MIN_WITHDRAW || !danaNumber.trim() || !currentUser || !db) return;
@@ -201,7 +218,6 @@ export default function App() {
     const amountToWithdraw = userData.balance;
 
     try {
-      // Simpan data permintaan withdraw ke koleksi 'withdrawals' di Firebase
       await addDoc(collection(db, 'withdrawals'), {
         username: currentUser,
         amount: amountToWithdraw,
@@ -210,7 +226,6 @@ export default function App() {
         createdAt: serverTimestamp()
       });
 
-      // Reset balance member setelah permintaan masuk
       await updateDoc(userRef, { balance: 0 });
       
       showNotification(`Withdraw Berhasil! Dana akan dikirim ke nomor DANA (${danaNumber}) dalam waktu 1-3 hari kerja.`, "success");
@@ -383,6 +398,37 @@ export default function App() {
                       : 'Ajukan Withdraw'}
                 </button>
               </form>
+            </div>
+
+            {/* --- RIWAYAT WITHDRAW (HISTORY) --- */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+              <p className="text-slate-400 text-xs mb-3 uppercase font-bold tracking-wider flex items-center gap-2">
+                <History size={16} className="text-yellow-400" /> Riwayat Penarikan (History)
+              </p>
+              {withdrawHistory.length === 0 ? (
+                <p className="text-slate-500 text-xs text-center py-4">Belum ada riwayat penarikan.</p>
+              ) : (
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+                  {withdrawHistory.map((item) => (
+                    <div key={item.id} className="bg-slate-950 border border-slate-800/80 p-3 rounded-xl flex justify-between items-center text-xs">
+                      <div>
+                        <p className="font-bold text-white">{item.amount?.toLocaleString('id-ID') || 0} Koin</p>
+                        <p className="text-slate-400">DANA: {item.danaNumber}</p>
+                        <p className="text-slate-500 text-[10px] mt-0.5">
+                          {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleString('id-ID') : 'Baru saja'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          item.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
