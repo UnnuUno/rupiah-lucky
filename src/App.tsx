@@ -46,7 +46,6 @@ export default function App() {
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawHistory, setWithdrawHistory] = useState([]);
 
-  // State Deteksi Adblock
   const [isAdBlocked, setIsAdBlocked] = useState(false);
 
   const [isSpinning, setIsSpinning] = useState(false);
@@ -57,7 +56,6 @@ export default function App() {
   const [adFinished, setAdFinished] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Deteksi Adblocker menggunakan metode Bait Element
   useEffect(() => {
     const bait = document.createElement('div');
     bait.innerHTML = '&nbsp;';
@@ -166,8 +164,8 @@ export default function App() {
   const handleLogout = () => { localStorage.removeItem('faucet_session'); setCurrentUser(null); setFormUsername(''); setFormPassword(''); setCurrentView('game'); };
   const showNotification = (msg, type = 'info') => { setNotification({ msg, type }); setTimeout(() => setNotification(null), 4000); };
   
-  const startAd = () => { 
-    // window.open("LINK_ADSTERRA_ANDA", "_blank");
+  // Fungsi ketika link iklan diklik
+  const handleAdClick = () => {
     setShowAd(true); 
     setAdTimer(5); 
     setAdFinished(false); 
@@ -317,7 +315,6 @@ export default function App() {
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-slate-950 text-slate-100 font-sans pb-10 flex flex-col justify-between">
       
-      {/* MODAL PERINGATAN ADBLOCK */}
       {isAdBlocked && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 text-center backdrop-blur-md">
           <div className="bg-slate-900 border-2 border-red-500/50 p-8 rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(239,68,68,0.3)]">
@@ -377,7 +374,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* KOTAK KLAIM VOUCHER */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
               <p className="text-slate-400 text-xs mb-2 uppercase font-bold tracking-wider flex items-center gap-2">
                 <Gift size={16} className="text-blue-400" /> Punya Kode Promo / Voucher?
@@ -400,7 +396,6 @@ export default function App() {
               </form>
             </div>
 
-            {/* TOTAL SALDO */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
               <p className="text-slate-400 text-xs mb-1 uppercase font-bold tracking-wider">Total Pendapatan Koin</p>
               <div className="flex items-center gap-3 mt-2">
@@ -411,7 +406,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* FORM WITHDRAW KE DANA */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
               <p className="text-slate-400 text-xs mb-2 uppercase font-bold tracking-wider flex items-center gap-2">
                 <Wallet size={16} className="text-green-400" /> Penarikan Saldo (Withdraw ke DANA)
@@ -446,7 +440,6 @@ export default function App() {
               </form>
             </div>
 
-            {/* --- RIWAYAT WITHDRAW (HISTORY) --- */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
               <p className="text-slate-400 text-xs mb-3 uppercase font-bold tracking-wider flex items-center gap-2">
                 <History size={16} className="text-yellow-400" /> Riwayat Penarikan (History)
@@ -497,9 +490,17 @@ export default function App() {
           </main>
         ) : (
           <main className="max-w-md mx-auto px-4 mt-6 flex flex-col items-center gap-8">
-            <button onClick={startAd} disabled={isSpinning || showAd} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20 text-white cursor-pointer">
+            
+            {/* TOMBOL IKLAN MENGGUNAKAN TAG <a> AGAR TIDAK DIBLOKIR BROWSER HP */}
+            <a 
+              href="https://www.highcpmgate.com/LINK_DIRECT_LINK_ADSTERRA_ANDA" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={handleAdClick}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20 text-white cursor-pointer no-underline"
+            >
               <Video size={20}/> Tonton Iklan (+1 Tiket)
-            </button>
+            </a>
             
             <div className="w-72 h-72 rounded-full border-[10px] border-slate-800 bg-slate-900 overflow-hidden relative flex justify-center shadow-2xl mt-2">
               <div className="absolute -top-1 z-20 text-red-500 drop-shadow-md"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22L2 2h20L12 22z" /></svg></div>
@@ -565,7 +566,6 @@ export default function App() {
         )}
       </div>
 
-      {/* FOOTER WEBSITE */}
       <footer className="mt-16 py-6 text-center text-xs text-slate-500 border-t border-slate-900/80">
         <p>Created with Vite and ❤️ by Salmann.d</p>
       </footer>
