@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
-import { Play, Coins, Ticket, User, AlertCircle, Video, X, Trophy, History, CheckCircle2, LogOut, Lock, Wallet, ArrowLeft, Activity, Tag, Gift } from 'lucide-react';
+import { Play, Coins, Ticket, User, AlertCircle, Video, X, Trophy, History, CheckCircle2, LogOut, Lock, Wallet, ArrowLeft, Activity, Tag, Gift, ShieldAlert } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, increment, serverTimestamp, collection, addDoc, query, where } from 'firebase/firestore';
 
@@ -25,7 +25,7 @@ const PRIZES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40, 50, 60, 70, 
 const WEIGHTS = PRIZES.map(p => Math.max(1, Math.floor(100000 / p)));
 const TOTAL_WEIGHT = WEIGHTS.reduce((acc, val) => acc + val, 0);
 const SLICE_ANGLE = 360 / PRIZES.length;
-const MIN_WITHDRAW = 1000; // Syarat minimum penarikan koin
+const MIN_WITHDRAW = 1000;
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -42,10 +42,12 @@ export default function App() {
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherLoading, setVoucherLoading] = useState(false);
 
-  // State Nomor DANA & Riwayat Withdraw
   const [danaNumber, setDanaNumber] = useState('');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawHistory, setWithdrawHistory] = useState([]);
+
+  // State Deteksi Adblock
+  const [isAdBlocked, setIsAdBlocked] = useState(false);
 
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -55,13 +57,38 @@ export default function App() {
   const [adFinished, setAdFinished] = useState(false);
   const [notification, setNotification] = useState(null);
 
+  // Deteksi Adblocker menggunakan metode Bait Element
+  useEffect(() => {
+    const bait = document.createElement('div');
+    bait.innerHTML = '&nbsp;';
+    bait.className = 'adsbox ad-banner advertisement pub_300x250 pub_300x250_m pub_728x90 text-ad textAd text_ad';
+    bait.style.width = '1px';
+    bait.style.height = '1px';
+    bait.style.position = 'absolute';
+    bait.style.left = '-10000px';
+    document.body.appendChild(bait);
+
+    setTimeout(() => {
+      if (
+        bait.offsetParent === null ||
+        bait.offsetHeight === 0 ||
+        window.getComputedStyle(bait).display === 'none' ||
+        window.getComputedStyle(bait).visibility === 'hidden'
+      ) {
+        setIsAdBlocked(true);
+      }
+      if (bait.parentNode) {
+        document.body.removeChild(bait);
+      }
+    }, 300);
+  }, []);
+
   useEffect(() => {
     if (!db) { setFirebaseError(true); return; }
     const savedUser = localStorage.getItem('faucet_session');
     if (savedUser) setCurrentUser(savedUser);
   }, []);
 
-  // Listener Data User
   useEffect(() => {
     if (!currentUser || !db) return;
     const docRef = doc(db, 'faucet_users', currentUser);
@@ -78,7 +105,6 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUser]);
 
-  // Listener Riwayat Withdraw User
   useEffect(() => {
     if (!currentUser || !db) return;
     const q = query(collection(db, 'withdrawals'), where('username', '==', currentUser));
@@ -87,7 +113,6 @@ export default function App() {
       snapshot.forEach((doc) => {
         list.push({ id: doc.id, ...doc.data() });
       });
-      // Urutkan dari yang terbaru berdasarkan waktu
       list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       setWithdrawHistory(list);
     });
@@ -142,6 +167,7 @@ export default function App() {
   const showNotification = (msg, type = 'info') => { setNotification({ msg, type }); setTimeout(() => setNotification(null), 4000); };
   
   const startAd = () => { 
+    // window.open("LINK_ADSTERRA_ANDA", "_blank");
     setShowAd(true); 
     setAdTimer(5); 
     setAdFinished(false); 
@@ -290,6 +316,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-slate-950 text-slate-100 font-sans pb-10 flex flex-col justify-between">
+      
+      {/* MODAL PERINGATAN ADBLOCK */}
+      {isAdBlocked && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 text-center backdrop-blur-md">
+          <div className="bg-slate-900 border-2 border-red-500/50 p-8 rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(239,68,68,0.3)]">
+            <ShieldAlert size={64} className="text-red-500 mx-auto mb-4 animate-pulse" />
+            <h2 className="text-2xl font-bold mb-2 text-white">AdBlock Terdeteksi!</h2>
+            <p className="text-slate-400 text-xs mb-6 leading-relaxed">
+              Situs ini dibiayai oleh iklan. Mohon matikan ekstensi AdBlock atau pemblokir iklan di browser Anda untuk melanjutkan bermain dan mendukung situs ini.
+            </p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-red-600 hover:bg-red-500 text-white p-3.5 rounded-2xl w-full font-bold transition-colors cursor-pointer shadow-lg"
+            >
+              Saya Sudah Mematikan AdBlock
+            </button>
+          </div>
+        </div>
+      )}
+
       <div>
         <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-md">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('game')}>
@@ -412,7 +458,7 @@ export default function App() {
                   {withdrawHistory.map((item) => (
                     <div key={item.id} className="bg-slate-950 border border-slate-800/80 p-3 rounded-xl flex justify-between items-center text-xs">
                       <div>
-                        <p className="font-bold text-white">{item.amount?.toLocaleString('id-ID') || 0} Rupiah</p>
+                        <p className="font-bold text-white">{item.amount?.toLocaleString('id-ID') || 0} Koin</p>
                         <p className="text-slate-400">DANA: {item.danaNumber}</p>
                         <p className="text-slate-500 text-[10px] mt-0.5">
                           {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleString('id-ID') : 'Baru saja'}
@@ -521,7 +567,7 @@ export default function App() {
 
       {/* FOOTER WEBSITE */}
       <footer className="mt-16 py-6 text-center text-xs text-slate-500 border-t border-slate-900/80">
-        <p>Powered by Vite and Salmann.d</p>
+        <p>Created with Vite and ❤️ by Salmann.d</p>
       </footer>
     </div>
   );
