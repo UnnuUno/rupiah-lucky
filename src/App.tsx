@@ -493,7 +493,7 @@ export default function App() {
             
             {/* TOMBOL IKLAN MENGGUNAKAN TAG <a> AGAR TIDAK DIBLOKIR BROWSER HP */}
             <a 
-              href="https://www.highcpmgate.com/LINK_DIRECT_LINK_ADSTERRA_ANDA" 
+              href="https://www.effectivecpmnetwork.com/r8jxy3w3?key=4496a10ae42d344fb8f83c58d784388a" 
               target="_blank" 
               rel="noopener noreferrer"
               onClick={handleAdClick}
