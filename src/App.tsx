@@ -251,7 +251,7 @@ export default function App() {
             </div>
 
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-              <p className="text-slate-400 text-xs mb-2 uppercase font-bold">Total Memutar</p>
+              <p className="text-slate-400 text-xs mb-2 uppercase font-bold">Total Spin</p>
               <div className="flex items-center gap-2">
                 <Activity size={22} className="text-blue-400" />
                 <span className="text-xl font-bold text-white">{userData.totalSpins}x</span>
@@ -260,8 +260,9 @@ export default function App() {
           </div>
 
           <div className="mt-4 bg-blue-600/10 border border-blue-500/30 p-4 rounded-2xl text-center">
-            <p className="text-blue-300 text-xs leading-relaxed">Sistem pembayaran sedang dalam perbaikan, kami akan langsung membayarkan jika sudah pulih kembali </p>
-              <p className="text-blue-300 text-xs leading-relaxed">Minimal Pembayaran anda 1000 koin = Rp.1000,00 </p>
+            <p className="text-blue-300 text-xs leading-relaxed">💳 Penarikam sedang dalam perbaikan
+Sistem penarikan sementara tidak tersedia. Saldo Anda tetap aman dan penarikan akan diproses setelah sistem kembali normal. </p>
+              <p className="text-blue-300 text-xs leading-relaxed">Minimal Penarikan anda 1000 koin = Rp.1000,00 </p>
           </div>
         </main>
       ) : (
