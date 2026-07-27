@@ -260,7 +260,9 @@ export default function App() {
           </div>
 
           <div className="mt-4 bg-blue-600/10 border border-blue-500/30 p-4 rounded-2xl text-center">
-            <p className="text-blue-300 text-xs leading-relaxed">Minimal Pembayaran anda 1000 koin = Rp.1000,00 </p>        </div>
+            <p className="text-blue-300 text-xs leading-relaxed">Sistem pembayaran sedang dalam perbaikan, kami akan langsung membayarkan jika sudah pulih kembali/p>
+              <p className="text-blue-300 text-xs leading-relaxed">Minimal Pembayaran anda 1000 koin = Rp.1000/p>
+          </div>
         </main>
       ) : (
         <main className="max-w-md mx-auto px-4 mt-6 flex flex-col items-center gap-8">
