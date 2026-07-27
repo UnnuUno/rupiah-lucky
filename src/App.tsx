@@ -412,7 +412,7 @@ export default function App() {
                   {withdrawHistory.map((item) => (
                     <div key={item.id} className="bg-slate-950 border border-slate-800/80 p-3 rounded-xl flex justify-between items-center text-xs">
                       <div>
-                        <p className="font-bold text-white">{item.amount?.toLocaleString('id-ID') || 0} Koin</p>
+                        <p className="font-bold text-white">{item.amount?.toLocaleString('id-ID') || 0} Rupiah</p>
                         <p className="text-slate-400">DANA: {item.danaNumber}</p>
                         <p className="text-slate-500 text-[10px] mt-0.5">
                           {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleString('id-ID') : 'Baru saja'}
