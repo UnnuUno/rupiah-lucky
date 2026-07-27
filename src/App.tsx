@@ -194,7 +194,7 @@ export default function App() {
       <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('game')}>
           <Trophy className="text-yellow-500" size={22}/> 
-          <span className="font-bold text-lg text-white">Faucet<span className="text-blue-500">Spin</span></span>
+          <span className="font-bold text-lg text-white">Rupiah<span className="text-blue-500">Spin</span></span>
         </div>
 
         <div className="flex items-center gap-2">
