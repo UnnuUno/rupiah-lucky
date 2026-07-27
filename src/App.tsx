@@ -567,7 +567,7 @@ export default function App() {
       </div>
 
       <footer className="mt-16 py-6 text-center text-xs text-slate-500 border-t border-slate-900/80">
-        <p>Created with Vite and ❤️ by Salmann.d</p>
+        <p>Powered by Vite and Salmann.d</p>
       </footer>
     </div>
   );
